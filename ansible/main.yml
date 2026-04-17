@@ -1,0 +1,17 @@
+---
+- name: Contrôle de santé de la Calculatrice
+  hosts: localhost
+  connection: local
+  tasks:
+    - name: Attendre que l'application réponde sur le port 8081
+      uri:
+        url: "http://localhost:8081"
+        status_code: 200
+      register: result
+      until: result.status == 200
+      retries: 6        # Attend jusqu'à 1 minute (6 * 10s)
+      delay: 10         # Intervalle de 10 secondes entre les tests
+
+    - name: Confirmation du succès
+      debug:
+        msg: "Succès ! La calculatrice est accessible sur http://localhost:8081"
