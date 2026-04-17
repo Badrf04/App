@@ -1,17 +1,15 @@
 pipeline {
     agent any
-    environment {
-        CONTAINER_NAME = "openrecon-service"
-    }
     stages {
-        stage('0. Nettoyage') {
+        stage('0. Reset Docker') {
             steps {
-                sh "docker rm -f ${CONTAINER_NAME} || true"
+                // Nettoyage pour éviter les conflits de nom
+                sh 'docker rm -f openrecon-service || true'
             }
         }
-        stage('1. Sécurité') {
+        stage('1. Analyse Bandit') {
             steps {
-                sh 'bandit -r . || echo "Vulnérabilités notées"'
+                sh 'bandit -r . || echo "Vulnérabilités détectées"'
             }
         }
         stage('2. Build Image') {
@@ -19,7 +17,7 @@ pipeline {
                 sh 'docker build -t mon-app-cyber:latest .'
             }
         }
-        stage('3. Terraform Deploy') {
+        stage('3. Terraform Infrastructure') {
             steps {
                 dir('terraform') {
                     sh 'terraform init'
@@ -27,9 +25,10 @@ pipeline {
                 }
             }
         }
-        stage('4. Ansible Audit') {
+        stage('4. Ansible Healthcheck') {
             steps {
                 dir('ansible') {
+                    // LIAISON : Utilise bien check_status.yml
                     sh 'ansible-playbook check_status.yml'
                 }
             }
@@ -37,7 +36,7 @@ pipeline {
     }
     post {
         success {
-            echo "URL : http://localhost:8081"
+            echo "PIPELINE RÉUSSI : http://localhost:8081"
         }
     }
 }

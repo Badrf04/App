@@ -2,14 +2,14 @@ FROM python:3.10-slim
 
 WORKDIR /app
 
-# Installation des dépendances
+# On copie d'abord les requirements pour optimiser le cache
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copie du code
+# On copie tout le reste (main.py, calcule.py, etc.)
 COPY . .
 
-# LIAISON : On informe que l'app utilise le port 5000
+# Port interne NiceGUI
 EXPOSE 5000
 
 CMD ["python", "main.py"]

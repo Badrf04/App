@@ -20,8 +20,8 @@ resource "docker_container" "app_container" {
   restart = "always"
 
   ports {
-    internal = 5000   # LIAISON : Le port de main.py
-    external = 8081   # LIAISON : Le port testé par Ansible
+    internal = 5000   # Port défini dans main.py
+    external = 8081   # Port ouvert sur ta VM
     ip       = "0.0.0.0"
   }
 }

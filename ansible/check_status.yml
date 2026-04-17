@@ -1,12 +1,12 @@
 ---
-- name: Contrôle de santé de la Calculatrice
+- name: Contrôle de santé
   hosts: localhost
   tasks:
-    - name: "Attente du démarrage de NiceGUI sur le port 8081"
+    - name: "Attendre que NiceGUI réponde sur 8081"
       uri:
         url: "http://localhost:8081"
         status_code: 200
       register: result
       until: result.status == 200
-      retries: 20      # On laisse du temps à NiceGUI (100 secondes max)
+      retries: 20      # Important : NiceGUI est lent à démarrer
       delay: 5
