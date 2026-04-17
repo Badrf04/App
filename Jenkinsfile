@@ -1,39 +1,25 @@
 pipeline {
     agent any
-
     environment {
-        DOCKER_IMAGE = "mon-app-cyber:latest"
         CONTAINER_NAME = "openrecon-service"
     }
-
     stages {
-        stage('0. Nettoyage Initial') {
+        stage('0. Nettoyage') {
             steps {
-                echo "Suppression des anciens conteneurs..."
                 sh "docker rm -f ${CONTAINER_NAME} || true"
             }
         }
-
-        stage('1. Préparation') {
+        stage('1. Sécurité') {
             steps {
-                deleteDir()
-                checkout scm
+                sh 'bandit -r . || echo "Vulnérabilités notées"'
             }
         }
-
-        stage('2. Scan Sécurité (Bandit)') {
+        stage('2. Build Image') {
             steps {
-                sh 'bandit -r . || echo "Vulnérabilités détectées"'
+                sh 'docker build -t mon-app-cyber:latest .'
             }
         }
-
-        stage('3. Build Docker') {
-            steps {
-                sh "docker build -t ${DOCKER_IMAGE} ."
-            }
-        }
-
-        stage('4. Infrastructure (Terraform)') {
+        stage('3. Terraform Deploy') {
             steps {
                 dir('terraform') {
                     sh 'terraform init'
@@ -41,24 +27,17 @@ pipeline {
                 }
             }
         }
-
-        stage('5. Contrôle Ansible') {
+        stage('4. Ansible Audit') {
             steps {
                 dir('ansible') {
-                    echo "Lancement du playbook de vérification..."
-                    // Correction ici : nom du fichier trouvé avec ls
                     sh 'ansible-playbook check_status.yml'
                 }
             }
         }
     }
-
     post {
         success {
-            echo "-----------------------------------------------------------"
-            echo "PIPELINE TERMINÉ AVEC SUCCÈS !"
-            echo "Application disponible sur : http://localhost:8081"
-            echo "-----------------------------------------------------------"
+            echo "URL : http://localhost:8081"
         }
     }
 }

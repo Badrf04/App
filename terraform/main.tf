@@ -9,24 +9,19 @@ terraform {
 
 provider "docker" {}
 
-# Référence à l'image construite par Jenkins
 resource "docker_image" "app_image" {
   name         = "mon-app-cyber:latest"
   keep_locally = true
 }
 
-# Déploiement du conteneur
 resource "docker_container" "app_container" {
   name  = "openrecon-service"
-  image = docker_image.app_image.image_id
-  
-  # Redirection du port : 8081 (Public) -> 5000 (Privé NiceGUI)
-  ports {
-    internal = 5000
-    external = 8081
-  }
+  image = docker_image.app_image.name
+  restart = "always"
 
-  # Options de cycle de vie pour l'automatisation
-  must_run = true
-  restart  = "always"
+  ports {
+    internal = 5000   # LIAISON : Le port de main.py
+    external = 8081   # LIAISON : Le port testé par Ansible
+    ip       = "0.0.0.0"
+  }
 }
