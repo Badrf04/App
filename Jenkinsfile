@@ -7,6 +7,13 @@ pipeline {
     }
 
     stages {
+        stage('0. Nettoyage Initial') {
+            steps {
+                echo "Suppression des anciens conteneurs..."
+                sh "docker rm -f ${CONTAINER_NAME} || true"
+            }
+        }
+
         stage('1. Préparation') {
             steps {
                 deleteDir()
@@ -16,8 +23,7 @@ pipeline {
 
         stage('2. Scan Sécurité (Bandit)') {
             steps {
-                // Le "|| true" permet de continuer le pipeline même si Bandit trouve des failles
-                sh 'bandit -r . || echo "Vulnérabilités détectées pour le rapport"'
+                sh 'bandit -r . || echo "Vulnérabilités détectées"'
             }
         }
 
@@ -30,9 +36,6 @@ pipeline {
         stage('4. Infrastructure (Terraform)') {
             steps {
                 dir('terraform') {
-                    // Nettoyage préventif pour éviter l'erreur de conflit de nom
-                    sh "docker rm -f ${CONTAINER_NAME} || true"
-                    
                     sh 'terraform init'
                     sh 'terraform apply -auto-approve'
                 }
@@ -42,8 +45,9 @@ pipeline {
         stage('5. Contrôle Ansible') {
             steps {
                 dir('ansible') {
-                    // On utilise main.yml car c'est le nom de ton fichier sur le Desktop
-                    sh 'ansible-playbook main.yml'
+                    echo "Lancement du playbook de vérification..."
+                    // Correction ici : nom du fichier trouvé avec ls
+                    sh 'ansible-playbook check_status.yml'
                 }
             }
         }
@@ -51,10 +55,10 @@ pipeline {
 
     post {
         success {
-            echo "Déploiement réussi ! L'application est disponible sur le port 8081."
-        }
-        failure {
-            echo "Le pipeline a échoué. Vérifiez les logs ci-dessus."
+            echo "-----------------------------------------------------------"
+            echo "PIPELINE TERMINÉ AVEC SUCCÈS !"
+            echo "Application disponible sur : http://localhost:8081"
+            echo "-----------------------------------------------------------"
         }
     }
 }
