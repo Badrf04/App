@@ -10,7 +10,8 @@ class Calculatrice:
             self.equation = ""
         elif value == '=':
             try:
-                # Calcul sécurisé
+                # Note pour ton projet Cyber : eval() est une fonction à risque (injection)
+                # Mais elle est parfaite pour démontrer le fonctionnement de Bandit.
                 self.equation = str(eval(self.equation))
             except Exception:
                 self.equation = "Erreur"
@@ -19,7 +20,8 @@ class Calculatrice:
                 self.equation = ""
             self.equation += str(value)
         
-        self.result_label.set_text(self.equation)
+        if self.result_label:
+            self.result_label.set_text(self.equation)
 
 # --- Design de l'Interface ---
 calc = Calculatrice()
@@ -44,4 +46,6 @@ with ui.card().classes('w-80 mx-auto shadow-lg mt-10'):
                 color = 'red' if btn == 'C' else 'green' if btn == '=' else 'primary'
                 ui.button(btn, on_click=lambda b=btn: calc.on_click(b)).props(f'color={color}').classes('h-12 text-lg')
 
-ui.run(title="NiceGUI Calc", port=8080)
+# IMPORTANT : host='0.0.0.0' est OBLIGATOIRE pour Docker
+# port=5000 est le port interne du conteneur
+ui.run(host='0.0.0.0', port=5000, title='Calculatrice Pro', reload=False)
