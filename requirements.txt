@@ -1,5 +1,5 @@
-nicegui==0.24.1
-bandit==1.8.3
-ansible==11.3.0
-requests==2.33.1
+nicegui
+bandit
+ansible
+requests
 # Garde le reste si tu veux, mais nicegui est VITAL ici.
