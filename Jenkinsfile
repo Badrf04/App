@@ -1,31 +1,43 @@
 pipeline {
     agent any
-
     stages {
-        stage('1. Récupération du Code') {
+        stage('1. Préparation') {
             steps {
-                // Nettoie le dossier et télécharge le code depuis GitHub
                 deleteDir()
                 checkout scm
             }
         }
-
         stage('2. Scan Sécurité (Bandit)') {
             steps {
-                echo 'Lancement de l\'analyse statique du code...'
-                // Exécute bandit sur tout le répertoire actuel
-                // Le "|| true" permet au pipeline de continuer même si Bandit trouve des failles
-                sh 'bandit -r . || echo "Des vulnérabilités ont été détectées !"'
+                // On garde le "|| true" pour que le build continue malgré l'alerte eval()
+                sh 'bandit -r . || echo "Vulnérabilités détectées pour le rapport"'
+            }
+        }
+        stage('3. Build Docker') {
+            steps {
+                // Construction de l'image de la calculatrice
+                sh 'docker build -t mon-app-cyber:latest .'
+            }
+        }
+        stage('4. Infrastructure (Terraform)') {
+            steps {
+                dir('terraform') {
+                    sh 'terraform init'
+                    sh 'terraform apply -auto-approve'
+                }
+            }
+        }
+        stage('5. Contrôle Ansible') {
+            steps {
+                dir('ansible') {
+                    sh 'ansible-playbook check_status.yml'
+                }
             }
         }
     }
-
     post {
-        always {
-            echo 'Fin de l\'automatisation Jenkins-GitHub-Bandit.'
-        }
         success {
-            echo '✅ Code analysé avec succès.'
+            echo "✅ Tout est en ligne sur le port 8081 !"
         }
     }
 }
