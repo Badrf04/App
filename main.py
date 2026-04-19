@@ -25,7 +25,7 @@ calc = Calculatrice()
 
 with ui.card().classes('w-80 mx-auto shadow-lg mt-10'):
     with ui.column().classes('w-full items-center'):
-        ui.label('Calculatrice Next-Gen').classes('text-h6 text-grey-8')
+        ui.label('Calculatrice').classes('text-h6 text-grey-8')
         calc.result_label = ui.label('0').classes(
             'w-full bg-slate-100 p-4 text-right text-2xl font-mono rounded min-h-[64px] border'
         )
